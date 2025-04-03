@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "3E4D9BE8-9443-43CB-9445-F8A571DB1555",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "NetworkClientSDKTests",
+        "name" : "NetworkClientSDKTests"
+      }
+    }
+  ],
+  "version" : 1
+}
