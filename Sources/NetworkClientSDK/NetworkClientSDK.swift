@@ -3,15 +3,16 @@
 
 import Foundation
 
-public final class NetworkClientSDK: Sendable {
-    /// Shared singleton instance of NetworkSDK
-    public static let shared = NetworkClientSDK()
+@available(iOS 16, *)
+public final class NetworkClient: Sendable {
+    /// Shared singleton instance of NetworkClient
+    public static let shared = NetworkClient()
 
     /// Private initializer to enforce singleton pattern
     private init() {}
 }
 
-public extension NetworkClientSDK {
+public extension NetworkClient {
     /// Creates a default HTTP client with no interceptors
     @MainActor
     func createClient() -> HTTPClientProtocol {
