@@ -14,13 +14,11 @@ public final class NetworkClient: Sendable {
 
 public extension NetworkClient {
     /// Creates a default HTTP client with no interceptors
-    @MainActor
     func createClient() -> HTTPClientProtocol {
         return APIClient()
     }
 
     /// Creates a custom HTTP client with provided interceptors
-    @MainActor
     func createClient(
         session: HTTPSessionProtocol = HTTPSession(),
         interceptors: [any HTTPInterceptorProtocol],
