@@ -13,58 +13,188 @@ struct MockResponse: Encodable, Decodable {
     let data: String?
 }
 
+struct MockRequest: HTTPRequestProtocol {
+    var method: HTTPMethod = .get
+    var path: String = "/test"
+    var baseURL: String = "https://example.com"
+    var headers: [String : String] = [:]
+    var urlParams: [String : any CustomStringConvertible] = [:]
+    var body: HTTPBody? = nil
+    var apiVersion: String? = nil
+}
+
 @Suite("NetworkClientSDK") class NetworkClientSDKTests {
-    // MARK: - Properties
-    var apiClient: APIClient!
-    let request = URLRequestBuilder(path: "multiple-headers")
-        .makeRequest(withBaseURL: URL(string: "https://example.com")!)
+    @Suite("URLRequest") class URLRequestTests {
+        // MARK: - Properties
+        var apiClient: APIClient!
+        let request: URLRequest = .init(endpointRequest: URLRequestBuilder(basePath: "https://example.com").path("multiple-headers"))
 
-    init() {
-        let config = URLSessionConfiguration.ephemeral
-        config.protocolClasses = [MockURLProtocol.self]
-        let session = HTTPSession(session: URLSession(configuration: config))
+        init() {
+            let config = URLSessionConfiguration.ephemeral
+            config.protocolClasses = [MockURLProtocol.self]
+            let session = HTTPSession(session: URLSession(configuration: config))
 
-        apiClient = APIClient(session: session)
-    }
+            apiClient = APIClient(session: session)
+        }
 
-    deinit {
-        apiClient = nil
-        MockURLProtocol.mockResponse = (nil, nil, nil)
-    }
+        deinit {
+            apiClient = nil
+            MockURLProtocol.mockResponse = (nil, nil, nil)
+        }
 
-    @Test func requestSuccessWithResponse() async throws {
-        let responseData = try JSONEncoder().encode(MockResponse(data: "test"))
+        @Test("Request success with response")
+        func requestSuccessWithResponse() async throws {
+            let responseData = try JSONEncoder().encode(MockResponse(data: "test"))
 
-        MockURLProtocol.mockResponse = (
-            responseData,
-            HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil),
-            nil
-        )
-        let result: MockResponse = try await apiClient.request(request)
+            MockURLProtocol.mockResponse = (
+                responseData,
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil),
+                nil
+            )
+            let result: MockResponse = try await apiClient.request(request)
 
-        #expect(result.data == "test")
-    }
+            #expect(result.data == "test")
+        }
 
-    @Test func requestSuccessWithoutResponse() async throws {
-        MockURLProtocol.mockResponse = (
-            nil,
-            HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil),
-            nil
-        )
-        do {
-            try await apiClient.request(request)
-        } catch {
-            #expect(true == false)
+        @Test("Request success without response")
+        func requestSuccessWithoutResponse() async throws {
+            MockURLProtocol.mockResponse = (
+                nil,
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil),
+                nil
+            )
+            do {
+                try await apiClient.request(request)
+            } catch {
+                #expect(true == false)
+            }
+        }
+
+        @Test("Request failure")
+        func requestFailure() async {
+            MockURLProtocol.mockResponse = (nil, nil, URLError(.badServerResponse))
+
+            do {
+                try await apiClient.request(request)
+            } catch {
+                #expect(error is HTTPClientError)
+            }
         }
     }
 
-    @Test func requestFailure() async {
-        MockURLProtocol.mockResponse = (nil, nil, URLError(.badServerResponse))
+    @Suite("URLRequestBuilder") class URLRequestBuilderTests {
+        // MARK: - Properties
+        var apiClient: APIClient!
+        let request: URLRequestBuilder = URLRequestBuilder(basePath: "https://example.com").path("multiple-headers")
 
-        do {
-            try await apiClient.request(request)
-        } catch {
-            #expect(error is HTTPClientError)
+        init() {
+            let config = URLSessionConfiguration.ephemeral
+            config.protocolClasses = [MockURLProtocol.self]
+            let session = HTTPSession(session: URLSession(configuration: config))
+
+            apiClient = APIClient(session: session)
+        }
+
+        deinit {
+            apiClient = nil
+            MockURLProtocol.mockResponse = (nil, nil, nil)
+        }
+
+        @Test("Request success with response")
+        func requestSuccessWithResponse() async throws {
+            let responseData = try JSONEncoder().encode(MockResponse(data: "test"))
+
+            MockURLProtocol.mockResponse = (
+                responseData,
+                HTTPURLResponse(url: request.makeRequest().url!, statusCode: 200, httpVersion: nil, headerFields: nil),
+                nil
+            )
+            let result: MockResponse = try await apiClient.request(request)
+
+            #expect(result.data == "test")
+        }
+
+        @Test("Request success without response")
+        func requestSuccessWithoutResponse() async throws {
+            MockURLProtocol.mockResponse = (
+                nil,
+                HTTPURLResponse(url: request.makeRequest().url!, statusCode: 200, httpVersion: nil, headerFields: nil),
+                nil
+            )
+            do {
+                try await apiClient.request(request)
+            } catch {
+                #expect(true == false)
+            }
+        }
+
+        @Test("Request failure")
+        func requestFailure() async {
+            MockURLProtocol.mockResponse = (nil, nil, URLError(.badServerResponse))
+
+            do {
+                try await apiClient.request(request)
+            } catch {
+                #expect(error is HTTPClientError)
+            }
+        }
+    }
+
+    @Suite("HTTPRequestProtocol") class HTTPRequestProtocolTests {
+        // MARK: - Properties
+        var apiClient: APIClient!
+        let request: MockRequest = .init()
+
+        init() {
+            let config = URLSessionConfiguration.ephemeral
+            config.protocolClasses = [MockURLProtocol.self]
+            let session = HTTPSession(session: URLSession(configuration: config))
+
+            apiClient = APIClient(session: session)
+        }
+
+        deinit {
+            apiClient = nil
+            MockURLProtocol.mockResponse = (nil, nil, nil)
+        }
+
+        @Test("Request success with response")
+        func requestSuccessWithResponse() async throws {
+            let responseData = try JSONEncoder().encode(MockResponse(data: "test"))
+
+            MockURLProtocol.mockResponse = (
+                responseData,
+                HTTPURLResponse(url: request.urlRequest!.url!, statusCode: 200, httpVersion: nil, headerFields: nil),
+                nil
+            )
+            let result: MockResponse = try await apiClient.request(request)
+
+            #expect(result.data == "test")
+        }
+
+        @Test("Request success without response")
+        func requestSuccessWithoutResponse() async throws {
+            MockURLProtocol.mockResponse = (
+                nil,
+                HTTPURLResponse(url: request.urlRequest!.url!, statusCode: 200, httpVersion: nil, headerFields: nil),
+                nil
+            )
+            do {
+                try await apiClient.request(request)
+            } catch {
+                #expect(true == false)
+            }
+        }
+
+        @Test("Request failure")
+        func requestFailure() async {
+            MockURLProtocol.mockResponse = (nil, nil, URLError(.badServerResponse))
+
+            do {
+                try await apiClient.request(request)
+            } catch {
+                #expect(error is HTTPClientError)
+            }
         }
     }
 }

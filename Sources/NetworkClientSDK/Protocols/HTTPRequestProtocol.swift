@@ -36,7 +36,7 @@ public protocol HTTPRequestProtocol {
     var urlRequest: URLRequest? { get }
     
     /// API version used by the endpoint, example: `/api/v1/`
-    var apiVersion: String { get }
+    var apiVersion: String? { get }
 }
 
 public extension HTTPRequestProtocol {
@@ -53,7 +53,11 @@ public extension HTTPRequestProtocol {
     /// // Use the request with URLSession or any networking library.
     /// ```
     var urlRequest: URLRequest? {
-        var components = URLComponents(string: baseURL + apiVersion + path)
+        var apiPath = baseURL
+        if let apiVersion { apiPath += apiVersion }
+        apiPath += path
+
+        var components = URLComponents(string: apiPath)
         components?.queryItems = urlParams.map { key, value in
             URLQueryItem(name: key, value: String(describing: value))
         }

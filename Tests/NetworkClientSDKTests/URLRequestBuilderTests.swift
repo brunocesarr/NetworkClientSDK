@@ -10,30 +10,33 @@ import Testing
 @testable import NetworkClientSDK
 
 @Suite("URLRequestBuilder") class URLRequestBuilderTests {
-    let testURL = URL(string: "https://example.com")!
 
-    @Test func multipleHeaders() async throws {
-        let request = URLRequestBuilder(path: "multiple-headers")
+    @Test("Multiple headers")
+    func multipleHeaders() async throws {
+        let request = URLRequestBuilder(basePath: "https://example.com")
+            .path("multiple-headers")
             .header(name: HTTPHeaderName.accept, values: ["A", "B", "C"])
-            .makeRequest(withBaseURL: testURL)
+            .makeRequest()
 
         #expect(request.value(forHTTPHeaderField: HTTPHeaderName.accept.rawValue) == "A,B,C")
     }
 
-    @Test func builder() async throws {
+    @Test("Builder")
+    func builder() async throws {
         let user = 1
         let userData = try JSONEncoder().encode(user)
         let authToken = "aaa"
 
-        let request = try URLRequestBuilder(path: "users/submit")
+        let request = URLRequestBuilder(basePath: "https://example.com")
+            .path("users/submit")
             .method(.post)
-            .jsonBody(user)
+            .body(userData)
             .contentType(.applicationJSON)
             .accept(.applicationJSON)
             .timeout(20)
             .queryItem(name: "city", value: "San Francisco")
             .header(name: HTTPHeaderName.authorization, value: authToken)
-            .makeRequest(withBaseURL: testURL)
+            .makeRequest()
 
         #expect(request.url?.absoluteString == "https://example.com/users/submit?city=San%20Francisco")
         #expect(request.value(forHTTPHeaderField: HTTPHeaderName.authorization.rawValue) == authToken)

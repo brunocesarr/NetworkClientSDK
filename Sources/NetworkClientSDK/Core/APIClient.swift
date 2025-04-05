@@ -24,21 +24,44 @@ public final class APIClient: HTTPClientProtocol {
         self.interceptors = interceptors
         self.decoder = decoder
     }
+}
 
-    // MARK: - Methods -
-    public func request<T: Decodable & Sendable>(
-        _ urlRequest: any HTTPRequestProtocol
-    ) async throws -> T {
-        try await request(urlRequest, decoder: decoder)
-    }
-
-    public func request<T: Decodable & Sendable>(
+// MARK: - URLRequest Methods
+public extension APIClient {
+    func request<T: Decodable & Sendable>(
         _ urlRequest: URLRequest,
     ) async throws -> T {
         try await request(urlRequest, decoder: decoder)
     }
 
-    public func request<T: Decodable & Sendable>(
+    func request<T: Decodable & Sendable>(
+        _ urlRequest: URLRequest,
+        decoder: JSONDecoder
+    ) async throws -> T {
+        let data = try await performRequest(urlRequest)
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            throw HTTPClientError.decodingFailed(error)
+        }
+    }
+
+    func request(
+        _ urlRequest: URLRequest
+    ) async throws {
+        try await performRequest(urlRequest)
+    }
+}
+
+// MARK: - HTTPRequestProtocol Methods
+public extension APIClient {
+    func request<T: Decodable & Sendable>(
+        _ urlRequest: any HTTPRequestProtocol
+    ) async throws -> T {
+        try await request(urlRequest, decoder: decoder)
+    }
+
+    func request<T: Decodable & Sendable>(
         _ urlRequest: any HTTPRequestProtocol,
         decoder: JSONDecoder
     ) async throws -> T {
@@ -54,19 +77,7 @@ public final class APIClient: HTTPClientProtocol {
         }
     }
 
-    public func request<T: Decodable & Sendable>(
-        _ urlRequest: URLRequest,
-        decoder: JSONDecoder
-    ) async throws -> T {
-        let data = try await performRequest(urlRequest)
-        do {
-            return try decoder.decode(T.self, from: data)
-        } catch {
-            throw HTTPClientError.decodingFailed(error)
-        }
-    }
-
-    public func request(
+    func request(
         _ urlRequest: any HTTPRequestProtocol
     ) async throws {
         guard let urlRequest = urlRequest.urlRequest else {
@@ -75,15 +86,37 @@ public final class APIClient: HTTPClientProtocol {
 
         try await performRequest(urlRequest)
     }
+}
 
-    public func request(
-        _ urlRequest: URLRequest
+// MARK: - URLRequestBuilder Methods
+public extension APIClient {
+    func request<T: Decodable & Sendable>(
+        _ urlRequestBuilder: URLRequestBuilder,
+    ) async throws -> T {
+        try await request(urlRequestBuilder, decoder: decoder)
+    }
+
+    func request<T: Decodable & Sendable>(
+        _ urlRequestBuilder: URLRequestBuilder,
+        decoder: JSONDecoder
+    ) async throws -> T {
+        let data = try await performRequest(urlRequestBuilder.makeRequest())
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            throw HTTPClientError.decodingFailed(error)
+        }
+    }
+
+    func request(
+        _ urlRequestBuilder: URLRequestBuilder
     ) async throws {
-        try await performRequest(urlRequest)
+        try await performRequest(urlRequestBuilder.makeRequest())
     }
 }
 
-// MARK: - Private extensions -
+
+// MARK: - Private extensions
 private extension APIClient {
 
     @discardableResult

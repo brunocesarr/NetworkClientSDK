@@ -30,6 +30,20 @@ public protocol HTTPClientProtocol: Sendable {
     /// Sends a request to the specified endpoint and decodes the response into the specified type.
     ///
     /// - Parameters:
+    ///   - urlRequestBuilder: The url request builder .
+    ///   - decoder: A `JSONDecoder` instance used for decoding the response. Defaults to `JSONDecoder()`.
+    /// - Returns: A decoded instance of type `T`.
+    /// - Throws: An error if the request fails or if decoding the response data is unsuccessful.
+    /// - Note: The type `T` must conform to `Decodable` and `Sendable`.
+    ///
+    func request<T: Decodable & Sendable>(
+        _ urlRequestBuilder: URLRequestBuilder,
+        decoder: JSONDecoder
+    ) async throws -> T
+
+    /// Sends a request to the specified endpoint and decodes the response into the specified type.
+    ///
+    /// - Parameters:
     ///   - endpoint: The API endpoint to send the request to.
     ///   - decoder: A `JSONDecoder` instance used for decoding the response. Defaults to `JSONDecoder()`.
     /// - Returns: A decoded instance of type `T`.
@@ -45,6 +59,19 @@ public protocol HTTPClientProtocol: Sendable {
     ///
     /// - Parameters:
     ///   - urlRequest: The endpoint to request.
+    ///   - decoder: The `JSONDecoder` to use for decoding the response.
+    /// - Returns: The decoded response of type `T`.
+    /// - Throws: An error if the request fails or if decoding fails.
+    /// - This method can be used for various HTTP methods that we are not interested in the response/return value but only if it succeed or fails, such as `POST`, `DELETE`, and `PATCH` and more.
+    ///
+    func request(
+        _ urlRequestBuilder: URLRequestBuilder
+    ) async throws
+
+    /// Sends a request that does not return the response body.
+    ///
+    /// - Parameters:
+    ///   - urlRequestBuilder: The url request builder .
     ///   - decoder: The `JSONDecoder` to use for decoding the response.
     /// - Returns: The decoded response of type `T`.
     /// - Throws: An error if the request fails or if decoding fails.
@@ -83,6 +110,19 @@ public extension HTTPClientProtocol {
         _ urlRequest: any HTTPRequestProtocol
     ) async throws -> T {
         try await request(urlRequest, decoder: decoder)
+    }
+
+    /// Sends a request to the specified endpoint and decodes the response into the specified type,
+    /// using a default `decoder`.
+    ///
+    /// - Parameter urlRequestBuilder:The url request builder.
+    /// - Returns: A decoded instance of type `T`.
+    /// - Throws: An error if the request fails or if decoding the response data is unsuccessful.
+    ///
+    func request<T: Decodable & Sendable>(
+        _ urlRequestBuilder: URLRequestBuilder
+    ) async throws -> T {
+        try await request(urlRequestBuilder, decoder: decoder)
     }
 
     /// Sends a request to the specified endpoint and decodes the response into the specified type,
