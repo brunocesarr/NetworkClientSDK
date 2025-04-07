@@ -54,4 +54,13 @@ import Testing
 
         #expect(request.url?.absoluteString == "https://example.com/users/submit")
     }
+
+    @Test("Builder with numbers")
+    func builderWithNumbers() async throws {
+        let request = URLRequestBuilder(basePath: "https://example.com/3")
+            .path("/users/submit/")
+            .makeRequest()
+
+        #expect(request.url?.absoluteString == "https://example.com/3/users/submit")
+    }
 }

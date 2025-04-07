@@ -17,7 +17,7 @@ public struct URLRequestBuilder {
         self.buildURLRequest = { _ in }
         self.urlComponents = urlComponents
         self.encoder = encoder
-        self.basePath = basePath.removeSlashesAtEnd()
+        self.basePath = basePath.addSlashesAtEndIfNeeded()
     }
 
     // MARK: - Starting point
@@ -38,7 +38,7 @@ public extension URLRequestBuilder {
         modifyURL { urlComponents in
             var formattedPath = path.removeSlashesAtStart()
             formattedPath = formattedPath.removeSlashesAtEnd()
-            urlComponents.path = "/\(formattedPath)"
+            urlComponents.path = formattedPath
         }
     }
 
