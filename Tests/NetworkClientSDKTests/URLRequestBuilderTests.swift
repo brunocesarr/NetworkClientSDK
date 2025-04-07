@@ -45,4 +45,13 @@ import Testing
         #expect(request.httpMethod == HTTPMethod.post.rawValue)
         #expect(request.httpBody == userData)
     }
+
+    @Test("Builder with slashes")
+    func builderWithSlashes() async throws {
+        let request = URLRequestBuilder(basePath: "https://example.com/")
+            .path("/users/submit/")
+            .makeRequest()
+
+        #expect(request.url?.absoluteString == "https://example.com/users/submit")
+    }
 }

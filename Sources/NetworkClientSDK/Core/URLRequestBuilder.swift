@@ -17,12 +17,14 @@ public struct URLRequestBuilder {
         self.buildURLRequest = { _ in }
         self.urlComponents = urlComponents
         self.encoder = encoder
-        self.basePath = basePath
+        self.basePath = basePath.removeSlashesAtEnd()
     }
 
     // MARK: - Starting point
     public init(basePath: String, encoder: JSONEncoder = JSONEncoder()) {
-        self.init(basePath: basePath, urlComponents: URLComponents(), encoder: encoder)
+        self.init(basePath: basePath,
+                  urlComponents: URLComponents(),
+                  encoder: encoder)
     }
 }
 
@@ -34,7 +36,9 @@ public extension URLRequestBuilder {
 
     func path(_ path: String) -> URLRequestBuilder {
         modifyURL { urlComponents in
-            urlComponents.path = path
+            var formattedPath = path.removeSlashesAtStart()
+            formattedPath = formattedPath.removeSlashesAtEnd()
+            urlComponents.path = "/\(formattedPath)"
         }
     }
 
